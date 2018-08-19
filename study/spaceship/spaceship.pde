@@ -1,12 +1,12 @@
-class Nave{
+class Spaceship{
   
-  PVector pos;
-  PImage img;
+  PVector position;
+  PImage image;
   float angle = 0;
   
-  Nave(){
-    pos = new PVector(300, 300);
-    img = loadImage("nave.png");
+  Spaceship(){
+    position = new PVector(300, 300);
+    image = loadImage("nave.png");
   }
   
   void update(float deltaTime){
@@ -16,35 +16,26 @@ class Nave{
   void draw(){
     pushMatrix();
 
-    translate(pos.x, pos.y);
+    translate(position.x,position.y);
     scale(0.25, 0.25);
     rotate(angle);
-    image(img,-img.width / 2, -img.height / 2);
+    image(image,-image.width / 2, -image.height / 2);
+    ellipse(position.x, position.y, 2, 2);
     
     popMatrix();
   }
   
-  void move(int xValue, int yValue){
+  void rotateTo(PVector newPosition){
+    PVector diff = new PVector();
+    diff.set(position);
+    diff.sub(newPosition);
+    angle = diff.heading();
+  } //<>//
+  
+  void move(float velocity){
     
-    
-      
-    
+    position.add(new PVector(position.x + velocity, position.y + velocity));
     
   }
-
-  void rotateTo(int xValue, int yValue){
-    rotate(0);
-    PVector click = new PVector(xValue, yValue);
-    angle = PVector.angleBetween(pos, click);
-    if(pos.x < xValue && pos.y > yValue){
-      angle += -0.5;
-    }
-    else if(pos.x > xValue && pos.y > yValue){
-      angle += -1;
-    }
-    else if (pos.x > xValue && pos.y < yValue){
-      angle += -1.5;
-    }
-  } //<>//
-
+  
 }
