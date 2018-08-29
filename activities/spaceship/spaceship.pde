@@ -1,3 +1,5 @@
+
+
 class Spaceship
 {
   
@@ -30,7 +32,10 @@ class Spaceship
     
     if(notInDestination() && launchAngle == angle)
     {
-        position.add(force);
+      float x = (position.x - stopPosition.x) / 500 * deltaTime * -1;
+      float y = (position.y - stopPosition.y) / 500 * deltaTime * -1;
+      PVector aux = new PVector(x, y);
+      position.add(aux);
     }
     
     if(angle >= PI * 2)
@@ -43,16 +48,6 @@ class Spaceship
   {
     pushMatrix();
 
-    text("X verification: " + (position.x >= stopPosition.x + 5 || position.x <= stopPosition.x - 5) + 
-      " | Y verification: " + (position.y >= stopPosition.y + 5 || position.y <= stopPosition.y - 5),50,50);
-      
-    text("Mouse click       => X: " + stopPosition.x + " Y: " + stopPosition.y, 50, 100);
-    text("Spaceship pos     => X: " + position.x + " Y: " + position.y, 50, 120);
-    text("Spaceship angle   => " + angle, 50, 140);
-    text("Spaceship l angle => " + launchAngle, 50, 160);
-    text("Spaceship force   => X :" + force.x + " Y: " + force.y, 50, 180);
-    text("Spaceship inLAngle => " + inLaunchAngle(), 50, 200);
-    
     translate(position.x,position.y);
     scale(0.15, 0.15);
     rotate(angle);
