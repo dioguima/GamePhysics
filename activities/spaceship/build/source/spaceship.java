@@ -34,8 +34,11 @@ class Spaceship{
 	}
 	
 	public void update(float deltaTime){	
-		
-		position.add(force.mult(multiplier).mult(deltaTime));
+	
+		float x = (position.x - stopPosition.x) / 500 * deltaTime * -1 * multiplier;
+		float y = (position.y - stopPosition.y) / 500 * deltaTime * -1 * multiplier;
+		PVector aux = new PVector(x, y);
+		position.add(aux);
 		
 		if(angle >= PI * 2){
 			angle = 0;
@@ -44,8 +47,6 @@ class Spaceship{
 	
 	public void draw(){
 		pushMatrix();
-
-		text(50, 50, multiplier);
 
 		translate(position.x,position.y);
 		scale(0.15f, 0.15f);
@@ -121,8 +122,8 @@ public void draw(){
 	float deltaTime = millis() - timeSinceLastFrame;
 	timeSinceLastFrame = millis();
 	spaceship.update(deltaTime);
-	
-	if(mousePressed && (lastClickMouse != null && lastClickMouse.x == mouseX && lastClickMouse.y == mouseX)){
+
+	if(mousePressed && (lastClickMouse.x == mouseX && lastClickMouse.y == mouseX)){
 		spaceship.multiplier += 0.01f;
 	}else if(mousePressed){
 		spaceship.multiplier = 0;
@@ -136,13 +137,15 @@ public void draw(){
 }
 
 public void mouseClicked(){
+	spaceship.acceleration = 0.01f;
+
 	if(mouseButton == LEFT){
 		PVector mouseClick = new PVector(mouseX, mouseY);
 		PVector diff = new PVector();
 		diff.set(spaceship.position);
 		diff.sub(mouseClick);
 
-		spaceship.stopPosition = mouseClick;
+		//spaceship.stopPosition = mouseClick;
 		spaceship.force = diff.mult(-0.01f);
 		spaceship.rotateTo(mouseClick);
 		background(255);
