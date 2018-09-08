@@ -23,19 +23,12 @@ void draw(){
 	if(mousePressed && mouseButton == LEFT){
     
     PVector mouseClick = new PVector(mouseX, mouseY);
-    PVector diff = new PVector();
-    diff.set(mouseClick);
-    diff.sub(spaceship.position);
-    diff.normalize();
-    diff.mult(spaceship.propForce);
-    diff.mult(deltaTime/1000);
-    
-    spaceship.rotateTo(mouseClick);
-    spaceship.force.add(diff);
-    
+    spaceship.addForce(mouseClick, deltaTime);
+
 	}else if(mousePressed && mouseButton == RIGHT){
     
-    spaceship.fire();
+    PVector mouseClick = new PVector(mouseX, mouseY);
+    spaceship.fire(mouseClick);
   
   }
   
@@ -44,22 +37,3 @@ void draw(){
 	spaceship.draw();
   scenario.drawFloor();
 }
-
-/*
-void mouseClicked(){
-
-  if(mouseButton == LEFT){
-		PVector mouseClick = new PVector(mouseX, mouseY);
-		PVector diff = new PVector();
-		diff.set(spaceship.position);
-		diff.sub(mouseClick);
-
-		spaceship.stopPosition = mouseClick;
-		spaceship.force = diff.mult(-0.01f);
-		spaceship.rotateTo(mouseClick);
-		
-	}else if(mouseButton == RIGHT){
-		spaceship.fire();
-	}
-}
-*/

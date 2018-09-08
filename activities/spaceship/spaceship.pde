@@ -4,12 +4,12 @@ class Spaceship{
 	PVector force;
 	PVector stopPosition;
 	PImage image;
-	float angle = 0;
 	Bullet bulletAlive;
-
-  float gForce = 10; 
-  float windForce = 3;
-  float propForce = 15;	
+  
+  float angle = 0;
+  float gAcceleration = 10;
+  float propellantForce = 20000;
+  float mass = 1000;
 
 	Spaceship(){
 		position = new PVector(300, 300);
@@ -19,31 +19,19 @@ class Spaceship{
 	}
 	
 	void update(float deltaTime){	
-		
-    if(position.x < width){
-      PVector windForceVector = new PVector();
-      windForceVector.x = windForce * (deltaTime/1000);
-      windForceVector.y = 0;
-      force.add(windForceVector);
-    }
-    
-    if((force.x > 0 && position.x > width) || (force.x < 0 && position.x < 0)){
-      force.x = 0;
-    }
-  
+	
     if(position.y < height - scenario.floorHeight){
       PVector gForceVector = new PVector();
       gForceVector.x = 0;
-      gForceVector.y = gForce * (deltaTime/1000);  
+      gForceVector.y = gAcceleration * (deltaTime/1000);  
       force.add(gForceVector);    
     }
     
     if((force.y > 0 && position.y > height - scenario.floorHeight) || (force.y < 0 && position.y < 0)){
-      force.y = 0;
+      force.y *= -1;
     }
   
-    
-		position.add(force);
+    position.add(force);
 		
 		if(angle >= PI * 2){
 			angle = 0;
@@ -75,7 +63,19 @@ class Spaceship{
 		angle = diff.heading();
 	}
 	
-	void fire(){
-		this.bulletAlive = new Bullet(position, force);
+	void fire(PVector mouseClick){
+		this.bulletAlive = new Bullet(position, mouseClick.normalize());
 	}
+
+  void addForce(PVector mouseClick, float deltaTime){
+    PVector diff = new PVector();
+    diff.set(mouseClick);
+    diff.sub(spaceship.position);
+    diff.normalize();
+    diff.mult(propellantForce / mass);
+    diff.mult(deltaTime/1000);
+    
+    rotateTo(mouseClick);
+    force.add(diff);
+  }
 }
