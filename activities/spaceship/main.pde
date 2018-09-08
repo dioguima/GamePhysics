@@ -1,35 +1,54 @@
 Spaceship spaceship;
+Scenario scenario;
 float timeSinceLastFrame = 0.0f;
 PVector lastClickMouse;
 
 void settings(){
-	size(640, 640);
+	size(800, 800);
 }
 
 void setup(){
 	spaceship = new Spaceship();
+  scenario = new Scenario(this);
+  smooth();
+  noStroke();
 }
 
 void draw(){
-	float deltaTime = millis() - timeSinceLastFrame;
+  background(200, 196, 183);	
+  
+  float deltaTime = millis() - timeSinceLastFrame;
 	timeSinceLastFrame = millis();
-	spaceship.update(deltaTime);
 	
-	if(mousePressed && (lastClickMouse != null && lastClickMouse.x == mouseX && lastClickMouse.y == mouseX)){
-		spaceship.multiplier += 0.01f;
-	}else if(mousePressed){
-		spaceship.multiplier = 0;
-		lastClickMouse = new PVector(mouseX, mouseY);
-		spaceship.stopPosition = lastClickMouse;
-	}
-
-	background(255);
-	fill(0);
+	if(mousePressed && mouseButton == LEFT){
+    
+    PVector mouseClick = new PVector(mouseX, mouseY);
+    PVector diff = new PVector();
+    diff.set(mouseClick);
+    diff.sub(spaceship.position);
+    diff.normalize();
+    diff.mult(spaceship.propForce);
+    diff.mult(deltaTime/1000);
+    
+    spaceship.rotateTo(mouseClick);
+    spaceship.force.add(diff);
+    
+	}else if(mousePressed && mouseButton == RIGHT){
+    
+    spaceship.fire();
+  
+  }
+  
+  spaceship.update(deltaTime);
+  scenario.drawFlag();
 	spaceship.draw();
+  scenario.drawFloor();
 }
 
+/*
 void mouseClicked(){
-	if(mouseButton == LEFT){
+
+  if(mouseButton == LEFT){
 		PVector mouseClick = new PVector(mouseX, mouseY);
 		PVector diff = new PVector();
 		diff.set(spaceship.position);
@@ -38,9 +57,9 @@ void mouseClicked(){
 		spaceship.stopPosition = mouseClick;
 		spaceship.force = diff.mult(-0.01f);
 		spaceship.rotateTo(mouseClick);
-		background(255);
-		fill(0);
+		
 	}else if(mouseButton == RIGHT){
 		spaceship.fire();
 	}
 }
+*/

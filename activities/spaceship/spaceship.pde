@@ -4,22 +4,46 @@ class Spaceship{
 	PVector force;
 	PVector stopPosition;
 	PImage image;
-	float acceleration = 0;
 	float angle = 0;
-	float rotationDuration = 100;
 	Bullet bulletAlive;
-	float multiplier = 0;
-	
+
+  float gForce = 10; 
+  float windForce = 3;
+  float propForce = 15;	
+
 	Spaceship(){
 		position = new PVector(300, 300);
 		stopPosition = position;
 		image = loadImage("nave.png");
-		force = new PVector(1, 0);
+		force = new PVector(0, 0);
 	}
 	
 	void update(float deltaTime){	
 		
-		position.add(force.mult(multiplier).mult(deltaTime));
+    if(position.x < width){
+      PVector windForceVector = new PVector();
+      windForceVector.x = windForce * (deltaTime/1000);
+      windForceVector.y = 0;
+      force.add(windForceVector);
+    }
+    
+    if((force.x > 0 && position.x > width) || (force.x < 0 && position.x < 0)){
+      force.x = 0;
+    }
+  
+    if(position.y < height - scenario.floorHeight){
+      PVector gForceVector = new PVector();
+      gForceVector.x = 0;
+      gForceVector.y = gForce * (deltaTime/1000);  
+      force.add(gForceVector);    
+    }
+    
+    if((force.y > 0 && position.y > height - scenario.floorHeight) || (force.y < 0 && position.y < 0)){
+      force.y = 0;
+    }
+  
+    
+		position.add(force);
 		
 		if(angle >= PI * 2){
 			angle = 0;
@@ -29,12 +53,13 @@ class Spaceship{
 	void draw(){
 		pushMatrix();
 
+    text("Force x: " + force.x + " | Force y: " + force.y, 50, 50);
+
 		translate(position.x,position.y);
 		scale(0.15, 0.15);
 		rotate(angle);
 		image(image,-image.width / 2, -image.height / 2);
-		ellipse(position.x, position.y, 2, 2);
-	
+	  
 		popMatrix();
 
 		if(bulletAlive != null){
@@ -52,11 +77,5 @@ class Spaceship{
 	
 	void fire(){
 		this.bulletAlive = new Bullet(position, force);
-	}
-	
-	boolean notInDestination(){
-		int errorMarging = 2;
-		return (position.x >= stopPosition.x + errorMarging || position.x <= stopPosition.x - errorMarging)
-			&& (position.y >= stopPosition.y + errorMarging || position.y <= stopPosition.y - errorMarging);
 	}
 }
