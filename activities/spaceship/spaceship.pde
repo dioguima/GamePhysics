@@ -27,7 +27,8 @@ class Spaceship{
       force.add(gForceVector);    
     }
     
-    if((force.y > 0 && position.y > height - scenario.floorHeight) || (force.y < 0 && position.y < 0)){
+    //if((force.y > 0 && position.y > height - scenario.floorHeight) || (force.y < 0 && position.y < 0)){
+    if((force.y > 0 && position.y > height - scenario.floorHeight)){
       force.y *= -1;
     }
   
