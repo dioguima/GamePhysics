@@ -1,38 +1,29 @@
 class Spaceship{
 	
 	PVector position;
-	PVector force;
+	PVector velocity;
 	PVector stopPosition;
 	PImage image;
 	Bullet bulletAlive;
   
   float angle = 0;
-  float gAcceleration = 10;
+  float gAcceleration = 1;
   float propellantForce = 20000;
   float mass = 1000;
+  float airDensity = 0.000001;
 
 	Spaceship(){
-		position = new PVector(300, 300);
+		position = new PVector(300, 700);
 		stopPosition = position;
 		image = loadImage("nave.png");
-		force = new PVector(0, 0);
+		velocity = new PVector(0, 0);
 	}
 	
 	void update(float deltaTime){	
 	
-    if(position.y < height - scenario.floorHeight){
-      PVector gForceVector = new PVector();
-      gForceVector.x = 0;
-      gForceVector.y = gAcceleration * (deltaTime/1000);  
-      force.add(gForceVector);    
-    }
-    
-    //if((force.y > 0 && position.y > height - scenario.floorHeight) || (force.y < 0 && position.y < 0)){
-    if((force.y > 0 && position.y > height - scenario.floorHeight)){
-      force.y *= -1;
-    }
+    updateVelocity(deltaTime);
   
-    position.add(force);
+    position.add(velocity);
 		
 		if(angle >= PI * 2){
 			angle = 0;
@@ -42,7 +33,9 @@ class Spaceship{
 	void draw(){
 		pushMatrix();
 
-    text("Force x: " + force.x + " | Force y: " + force.y, 50, 50);
+      float contactArea = abs(cos(abs(angle)) * image.width) + abs(cos(abs(angle) + 1.5708) * image.height);
+      float airResistanceForce = -0.5 * airDensity * pow(velocity.y, 2) * contactArea;
+      text(airResistanceForce, 50, 50);
 
 		translate(position.x,position.y);
 		scale(0.15, 0.15);
@@ -57,6 +50,32 @@ class Spaceship{
 		}
 	}
 	
+  void updateVelocity(float deltaTime){
+  
+    //Gravity
+    if(position.y < height - scenario.floorHeight){
+      PVector gForceVector = new PVector();
+      gForceVector.x = 0;
+      gForceVector.y = gAcceleration * (deltaTime/1000);  
+      velocity.add(gForceVector);    
+    }
+    
+    //Hit on floor
+    if((velocity.y > 0 && position.y > height - scenario.floorHeight)){
+      velocity.y *= -1;
+    }
+  
+    //Air resistence
+    if(velocity.y > 0){
+      //float contactArea = cos(abs(angle)) * image.width;
+      float contactArea = abs(cos(abs(angle)) * image.width) + abs(cos(abs(angle) + 1.5708) * image.height);
+      float airResistanceForce = -0.5 * airDensity * pow(velocity.y, 2) * contactArea;
+      
+      velocity.y += airResistanceForce * deltaTime;
+    }
+  
+  }
+
 	void rotateTo(PVector newPosition){
 		PVector diff = new PVector();
 		diff.set(position);
@@ -77,6 +96,6 @@ class Spaceship{
     diff.mult(deltaTime/1000);
     
     rotateTo(mouseClick);
-    force.add(diff);
+    velocity.add(diff);
   }
 }

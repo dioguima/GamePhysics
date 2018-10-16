@@ -4,7 +4,7 @@ float timeSinceLastFrame = 0.0f;
 PVector lastClickMouse;
 
 void settings(){
-	size(1300, 800);
+	size(800, 800);
 }
 
 void setup(){

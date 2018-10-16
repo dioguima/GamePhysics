@@ -17,7 +17,7 @@ class Scenario{
     pushMatrix();
 
     scale(flagScale,flagScale);
-    image(animation, 50, ((height) * (1 / flagScale)) - floorHeight - animation.height);
+    image(animation, 50, ((height) * (1 / flagScale)) - floorHeight - animation.height); //<>//
     
     popMatrix();
   }
