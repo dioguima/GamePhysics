@@ -12,9 +12,9 @@ function setup() {
     smooth();
 
 
-    let circle = new Circle(252, 144, 100);
+    let circle = new Circle(252, 144, 30);
     objectsArray.push(circle);
-    circle = new Circle(500, 144, 100);
+    circle = new Circle(500, 144, 30);
     objectsArray.push(circle);
 
     // let quad = new Quad(300, 300, 100);
@@ -40,6 +40,19 @@ function draw() {
     lastFrameDateTime = millis();
     for (let i in objectsArray) {
         objectsArray[i].update(deltaTime);
+
+        for(let l in objectsArray){
+            if(objectsArray[i] != objectsArray[l]){
+                if(objectsArray[i].checkCollision(objectsArray[l])){
+                    const velocitiesSum = createVector(
+                        objectsArray[i].velocity.x + objectsArray[l].velocity.x, 
+                        objectsArray[i].velocity.y + objectsArray[l].velocity.y);
+                     *= -0.9;
+                    objectsArray[l].velocity.x *= -0.9;
+                }
+            }
+        }
+
         objectsArray[i].draw();
     }
 }
@@ -51,12 +64,14 @@ function Circle(x, y, r) {
     this.r = r;
     this.velocity = createVector(2, 0);
 
-    this.isColliding = function(gameObject){
+    this.checkCollision = function(gameObject){
 
         const maxDist = this.r + gameObject.r;
         const catOp = this.x - gameObject.x;
-        
+        const catAd = this.y - gameObject.y;
+        const hip = Math.sqrt(Math.pow(catOp, 2) + Math.pow(catAd, 2))
 
+        return hip <= maxDist;
     }
 
     this.getExtremePoint = function(gameObject){
@@ -64,16 +79,16 @@ function Circle(x, y, r) {
     }
 
     this.update = function (deltaTime) {
-        if (this.y > height || this.y < 0) {
-            this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
-            this.y = this.y < 0 ? 0 : height;
+        if (this.y + this.r > height || this.y - this.r < 0) {
+            this.velocity = createVector(this.velocity.x, this.velocity.y * -0.9);
+            this.y = this.y < this.r ? this.r : height - this.r;
         }
-        else if(this.x > width || this.x < 0){
-            this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
-            this.x = this.x < 0 ? 0 : width;
+        else if(this.x + this.r > width || this.x - this.r < 0){
+            this.velocity = createVector(this.velocity.x * -0.9, this.velocity.y);
+            this.x = this.x < this.r ? this.r : width - this.r;
         }
         else {
-            this.velocity.add(gForceVector.x, gForceVector.y * deltaTime);
+            this.velocity.add(gForceVector.x * deltaTime, gForceVector.y * deltaTime);
             this.x += this.velocity.x;
             this.y += this.velocity.y;
         }
@@ -81,7 +96,7 @@ function Circle(x, y, r) {
 
         this.draw = function () {
             fill(220, 10, 10);
-            ellipse(this.x - (this.r / 2), this.y - (this.r / 2), this.r, this.r);
+            ellipse(this.x, this.y, this.r * 2, this.r * 2);
             
         }
 }
