@@ -1,6 +1,7 @@
 const objectsArray = [];
 var gForceVector;
 var lastFrameDateTime;
+const objectTypeEnum = { CIRCLE = 0, QUAD = 1 };
 
 function setup() {
 
@@ -12,13 +13,13 @@ function setup() {
     smooth();
 
 
-    let circle = new Circle(252, 144, 30);
+    let circle = new Circle(252, 144, 20);
     objectsArray.push(circle);
-    circle = new Circle(500, 144, 30);
+    circle = new Circle(500, 144, 20);
     objectsArray.push(circle);
 
-    // let quad = new Quad(300, 300, 100);
-    // objects.push(quad);
+    let quad = new Quad(300, 300, 40);
+    objectsArray.push(quad);
 
     //     triangle(18, 18, 18, 360, 81, 360);
 
@@ -44,11 +45,9 @@ function draw() {
         for(let l in objectsArray){
             if(objectsArray[i] != objectsArray[l]){
                 if(objectsArray[i].checkCollision(objectsArray[l])){
-                    const velocitiesSum = createVector(
-                        objectsArray[i].velocity.x + objectsArray[l].velocity.x, 
-                        objectsArray[i].velocity.y + objectsArray[l].velocity.y);
-                     *= -0.9;
-                    objectsArray[l].velocity.x *= -0.9;
+                    var aux = objectsArray[l].velocity;
+                    objectsArray[l].velocity = objectsArray[i].velocity;
+                    objectsArray[i].velocity = aux;
                 }
             }
         }
@@ -63,6 +62,7 @@ function Circle(x, y, r) {
     this.y = y;
     this.r = r;
     this.velocity = createVector(2, 0);
+    this.type = objectTypeEnum.CIRCLE;
 
     this.checkCollision = function(gameObject){
 
@@ -80,11 +80,11 @@ function Circle(x, y, r) {
 
     this.update = function (deltaTime) {
         if (this.y + this.r > height || this.y - this.r < 0) {
-            this.velocity = createVector(this.velocity.x, this.velocity.y * -0.9);
+            this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
             this.y = this.y < this.r ? this.r : height - this.r;
         }
         else if(this.x + this.r > width || this.x - this.r < 0){
-            this.velocity = createVector(this.velocity.x * -0.9, this.velocity.y);
+            this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
             this.x = this.x < this.r ? this.r : width - this.r;
         }
         else {
@@ -97,7 +97,6 @@ function Circle(x, y, r) {
         this.draw = function () {
             fill(220, 10, 10);
             ellipse(this.x, this.y, this.r * 2, this.r * 2);
-            
         }
 }
 
@@ -106,6 +105,29 @@ function Quad(x, y, l) {
     this.x = x;
     this.y = y;
     this.l = l;
+    this.velocity = createVector(2, 0);
+    this.type = objectTypeEnum.QUAD;
+
+    this.checkCollision = function(gameObject){
+        return false;
+    }
+
+    this.update = function(deltaTime){
+        let halfL = this.l / 2;
+        if (this.y + halfL > height || this.y - halfL < 0) {
+            this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
+            this.y = this.y < halfL ? halfL : height - halfL;
+        }
+        else if(this.x + halfL > width || this.x - halfL < 0){
+            this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
+            this.x = this.x < halfL ? halfL : width - halfL;
+        }
+        else {
+            this.velocity.add(gForceVector.x * deltaTime, gForceVector.y * deltaTime);
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+        }
+    },
 
     this.draw = function () {
         fill(10, 220, 10);
@@ -115,25 +137,4 @@ function Quad(x, y, l) {
             this.x - halfL + this.l, this.y - halfL + this.l,
             this.x - halfL, this.y - halfL + this.l);
     }
-}
-
-function Triangle(b, h, l) {
-
-    this.b = b;
-    this.h = h;
-    this.l = l;
-    this.velocity = createVector(0, 0);
-
-    this.update = function (deltaTime) {
-
-    },
-
-        this.draw = function () {
-            fill(10, 220, 10);
-            let halfL = this.l / 2;
-            quad(this.x - halfL, this.y - halfL,
-                this.x - halfL + this.l, this.y - halfL,
-                this.x - halfL + this.l, this.y - halfL + this.l,
-                this.x - halfL, this.y - halfL + this.l);
-        }
 }
