@@ -2,14 +2,15 @@ const objectsArray = [];
 var gForceVector;
 var lastFrameDateTime;
 const objectTypeEnum = { CIRCLE: 0, QUAD: 1 };
-const ballsNumber = 10;
+const ballsNumber = 3;
 const ballSize = 20;
+var uniformGrid;
 
 function setup() {
 
     gForceVector = createVector(0, 5);
     lastFrameDateTime = millis();
-
+    uniformGrid = new UniformGrid();
 
     noStroke();
     smooth();
@@ -51,20 +52,16 @@ function setup() {
 var i = 1;
 
 function draw() {
-    createCanvas(500, 500);
+    createCanvas(600, 600);
     background(220);
 
     const deltaTime = (millis() - lastFrameDateTime) / 1000;
     lastFrameDateTime = millis();
 
-    // // if(deltaTime % 2 == 0){
-    //     console.log(deltaTime)
-    // // }
-
-    objectsArray.sort((a,b) => {
-        if(a.x > b.x){
+    objectsArray.sort((a, b) => {
+        if (a.x > b.x) {
             return 1;
-        }else{
+        } else {
             return -1;
         }
     });
@@ -72,22 +69,24 @@ function draw() {
     for (let i in objectsArray) {
         objectsArray[i].update(deltaTime);
 
-        for(let l in objectsArray){
-            if (objectsArray[i] != objectsArray[l] && objectsArray[l].gamb < 0 && objectsArray[i].gamb < 0 &&
-                (objectsArray[i].x + objectsArray[i].r >= objectsArray[l].x - objectsArray[l].r ||
-                    objectsArray[i].y + objectsArray[i].r >= objectsArray[l].y - objectsArray[l].r)) {
-                if (objectsArray[i].checkCollision(objectsArray[l])) {
-                    var aux = objectsArray[l].velocity;
-                    objectsArray[l].velocity = objectsArray[i].velocity;
-                    objectsArray[i].velocity = aux;
-                    objectsArray[l].gamb = 5;
-                    objectsArray[i].gamb = 5;
-                }
-            }
+        for (let l in objectsArray) {
+            // if (objectsArray[i] != objectsArray[l] && objectsArray[l].cooldown < 0 && objectsArray[i].cooldown < 0 &&
+            //     (objectsArray[i].x + objectsArray[i].r >= objectsArray[l].x - objectsArray[l].r ||
+            //         objectsArray[i].y + objectsArray[i].r >= objectsArray[l].y - objectsArray[l].r)) {
+            //     if (objectsArray[i].checkCollision(objectsArray[l])) {
+            //         var aux = objectsArray[l].velocity;
+            //         objectsArray[l].velocity = objectsArray[i].velocity;
+            //         objectsArray[i].velocity = aux;
+            //         objectsArray[l].cooldown = 5;
+            //         objectsArray[i].cooldown = 5;
+            //     }
+            // }
         }
 
         objectsArray[i].draw();
     }
+
+    uniformGrid.resolveColisions(objectsArray);
 }
 
 function Circle(x, y, r) {
@@ -95,9 +94,10 @@ function Circle(x, y, r) {
     this.x = x;
     this.y = y;
     this.r = r;
+    this.restituitionCoefficient = 0.8;
     this.velocity = createVector(2, 0);
     this.type = objectTypeEnum.CIRCLE;
-    this.gamb = 0;
+    this.cooldown = 0;
 
     this.checkCollision = function (gameObject) {
 
@@ -107,28 +107,42 @@ function Circle(x, y, r) {
         const hip = Math.sqrt(Math.pow(catOp, 2) + Math.pow(catAd, 2))
 
         return hip <= maxDist;
-    }
-
-    this.getExtremePoint = function (gameObject) {
-        return createVector(gameObject.x, height);
-    }
-
-    this.update = function (deltaTime) {
-        if (this.y + this.r > height || this.y - this.r < 0) {
-            this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
-            this.y = this.y < this.r ? this.r : height - this.r;
-        }
-        else if (this.x + this.r > width || this.x - this.r < 0) {
-            this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
-            this.x = this.x < this.r ? this.r : width - this.r;
-        }
-        else {
-            this.velocity.add(gForceVector.x * deltaTime, gForceVector.y * deltaTime);
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
-        }
-        this.gamb -= 1;
     },
+
+        this.getExtremeLeft = function (gameObject) {
+            return this.x - this.r;
+        },
+
+        this.getExtremeRight = function (gameObject) {
+            return this.x + this.r;
+        },
+
+        this.getExtremeTop = function (gameObject) {
+            return this.y - this.r;
+        },
+
+        this.getExtremeBottom = function (gameObject) {
+            return this.y + this.r;
+        },
+
+        this.update = function (deltaTime) {
+            if (this.y + this.r > height || this.y - this.r < 0) {
+                this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
+                this.velocity.mult(this.restituitionCoefficient);
+                this.y = this.y < this.r ? this.r : height - this.r;
+            }
+            else if (this.x + this.r > width || this.x - this.r < 0) {
+                this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
+                this.velocity.mult(this.restituitionCoefficient);
+                this.x = this.x < this.r ? this.r : width - this.r;
+            }
+            else {
+                this.velocity.add(gForceVector.x * deltaTime, gForceVector.y * deltaTime);
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+            }
+            this.cooldown -= 1;
+        },
 
         this.draw = function () {
             fill(220, 10, 10);
@@ -173,4 +187,60 @@ function Quad(x, y, l) {
                 this.x - halfL + this.l, this.y - halfL + this.l,
                 this.x - halfL, this.y - halfL + this.l);
         }
+}
+
+function UniformGrid() {
+
+
+    this.resolveColisions = function (objectsArray) {
+
+        let cellSizeX = width / 3;
+        let cellSizeY = height / 3;
+
+        let matrix = makeMatrix(3, 3);
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                for (let objIndex = 0; objIndex < objectsArray.length; objIndex++) {
+                    let currentObject = objectsArray[objIndex];
+                    if (currentObject.getExtremeLeft() >= cellSizeX * i && currentObject.getExtremeLeft() <= cellSizeX * (i + 1) ||
+                        currentObject.getExtremeRight() >= cellSizeX * i && currentObject.getExtremeRight() <= cellSizeX * (i + 1) ||
+                        currentObject.getExtremeTop() >= cellSizeY * i && currentObject.getExtremeTop() <= cellSizeY * (i + 1) ||
+                        currentObject.getExtremeBottom() >= cellSizeY * i && currentObject.getExtremeBottom() <= cellSizeY * (i + 1)) {
+                        matrix[i][j].push(objectsArray[objIndex]);
+                    }
+                }
+            }
+        }
+
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                for (let objIndex = 0; objIndex < matrix[i][j].length - 1; objIndex++) {
+                    if (objectsArray[objIndex].checkCollision(objectsArray[objIndex + 1]) &&
+                        objectsArray[objIndex + 1].cooldown < 0 &&
+                        objectsArray[objIndex].cooldown < 0) {
+                        
+                        let aux = objectsArray[objIndex].velocity;
+                        objectsArray[objIndex].velocity = objectsArray[objIndex + 1].velocity;
+                        objectsArray[objIndex + 1].velocity = aux;
+                        objectsArray[objIndex].velocity.mult(objectsArray[objIndex].restituitionCoefficient);
+                        objectsArray[objIndex + 1].velocity.mult(objectsArray[objIndex].restituitionCoefficient);
+                        objectsArray[objIndex + 1].cooldown = 5;
+                        objectsArray[objIndex].cooldown = 5;
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+function makeMatrix(x, y) {
+    let ret = [];
+    for (let i = 0; i < x; i++) {
+        ret[i] = [];
+        for (let j = 0; j < y; j++) {
+            ret[i][j] = [];
+        }
+    }
+    return ret;
 }
