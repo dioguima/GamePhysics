@@ -2,8 +2,9 @@ const objectsArray = [];
 var gForceVector;
 var lastFrameDateTime;
 const objectTypeEnum = { CIRCLE: 0, QUAD: 1 };
-const ballsNumber = 3;
-const ballSize = 20;
+const ballSize = 15;
+const quadSize = 15;
+
 var uniformGrid;
 
 function setup() {
@@ -16,37 +17,26 @@ function setup() {
     smooth();
 
 
-    for (let i = 0; i < ballsNumber; i++) {
-        let xPosition = (ballSize / 2) + (ballSize * 2) * i + 40 + (Math.floor(Math.random() * 20));
-        let yPosition = (ballSize / 2) + (ballSize * 2) + 30 + (Math.floor(Math.random() * 350));
-        // let yPosition = Math.floor(Math.random() * (height - ballSize));
-        let circle = new Circle(xPosition, yPosition, ballSize);
-        objectsArray.push(circle);
-    }
-
-    // circle = new Circle(500, 144, 20);
-    // objectsArray.push(circle);
-    // circle = new Circle(100, 144, 20);
-    // objectsArray.push(circle);
-    // circle = new Circle(50, 144, 20);
-    // objectsArray.push(circle);
-    // circle = new Circle(100, 300, 20);
-    // objectsArray.push(circle);
-    // circle = new Circle(120, 50, 20);
-    // objectsArray.push(circle);
-    // circle = new Circle(140, 200, 20);
-    // objectsArray.push(circle);
-    // let quad = new Quad(300, 300, 40);
-    // objectsArray.push(quad);
-
-    //     triangle(18, 18, 18, 360, 81, 360);
+    // for (let i = 0; i < ballsNumber; i++) {
+    //     let xPosition = (ballSize / 2) + (ballSize * 2) * i + 40 + (Math.floor(Math.random() * 20));
+    //     let yPosition = (ballSize / 2) + (ballSize * 2) + 30 + (Math.floor(Math.random() * 350));
+    //     // let yPosition = Math.floor(Math.random() * (height - ballSize));
+    //     let circle = new Circle(xPosition, yPosition, ballSize);
+    //     objectsArray.push(circle);
+    // }
 
 
-    //   quad(189, 18, 216, 18, 216, 360, 144, 360);
 
-
-    //   ellipse(252, 144, 72, 72);
-
+    circle = new Circle(500, 144, 20);
+    objectsArray.push(circle);
+    circle = new Circle(100, 144, 20);
+    objectsArray.push(circle);
+    circle = new Circle(50, 144, 20);
+    objectsArray.push(circle);
+    let quad = new Quad(200, 200, 40);
+    objectsArray.push(quad);
+    quad = new Quad(400, 100, 40);
+    objectsArray.push(quad);
 }
 
 var i = 1;
@@ -94,60 +84,50 @@ function Circle(x, y, r) {
     this.x = x;
     this.y = y;
     this.r = r;
-    this.restituitionCoefficient = 0.8;
+    this.restituitionCoefficient = 0.99;
     this.velocity = createVector(2, 0);
     this.type = objectTypeEnum.CIRCLE;
     this.cooldown = 0;
 
-    this.checkCollision = function (gameObject) {
+    this.getExtremeLeft = function (gameObject) {
+        return this.x - this.r;
+    }
 
-        const maxDist = this.r + gameObject.r;
-        const catOp = this.x - gameObject.x;
-        const catAd = this.y - gameObject.y;
-        const hip = Math.sqrt(Math.pow(catOp, 2) + Math.pow(catAd, 2))
+    this.getExtremeRight = function (gameObject) {
+        return this.x + this.r;
+    }
 
-        return hip <= maxDist;
-    },
+    this.getExtremeTop = function (gameObject) {
+        return this.y - this.r;
+    }
 
-        this.getExtremeLeft = function (gameObject) {
-            return this.x - this.r;
-        },
+    this.getExtremeBottom = function (gameObject) {
+        return this.y + this.r;
+    }
 
-        this.getExtremeRight = function (gameObject) {
-            return this.x + this.r;
-        },
-
-        this.getExtremeTop = function (gameObject) {
-            return this.y - this.r;
-        },
-
-        this.getExtremeBottom = function (gameObject) {
-            return this.y + this.r;
-        },
-
-        this.update = function (deltaTime) {
-            if (this.y + this.r > height || this.y - this.r < 0) {
-                this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
-                this.velocity.mult(this.restituitionCoefficient);
-                this.y = this.y < this.r ? this.r : height - this.r;
-            }
-            else if (this.x + this.r > width || this.x - this.r < 0) {
-                this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
-                this.velocity.mult(this.restituitionCoefficient);
-                this.x = this.x < this.r ? this.r : width - this.r;
-            }
-            else {
-                this.velocity.add(gForceVector.x * deltaTime, gForceVector.y * deltaTime);
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-            }
-            this.cooldown -= 1;
-        },
-
-        this.draw = function () {
-            fill(220, 10, 10);
-            ellipse(this.x, this.y, this.r * 2, this.r * 2);
+    this.update = function (deltaTime) {
+        if (this.y + this.r > height || this.y - this.r < 0) {
+            this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
+            this.velocity.mult(this.restituitionCoefficient);
+            this.y = this.y < this.r ? this.r : height - this.r;
         }
+        else if (this.x + this.r > width || this.x - this.r < 0) {
+            this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
+            this.velocity.mult(this.restituitionCoefficient);
+            this.x = this.x < this.r ? this.r : width - this.r;
+        }
+        else {
+            this.velocity.add(gForceVector.x * deltaTime, gForceVector.y * deltaTime);
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+        }
+        this.cooldown -= 1;
+    }
+
+    this.draw = function () {
+        fill(220, 10, 10);
+        ellipse(this.x, this.y, this.r * 2, this.r * 2);
+    }
 }
 
 function Quad(x, y, l) {
@@ -155,6 +135,7 @@ function Quad(x, y, l) {
     this.x = x;
     this.y = y;
     this.l = l;
+    this.restituitionCoefficient = 0.99;
     this.velocity = createVector(2, 0);
     this.type = objectTypeEnum.QUAD;
 
@@ -162,14 +143,32 @@ function Quad(x, y, l) {
         return false;
     }
 
+    this.getExtremeLeft = function (gameObject) {
+        return this.x - this.l;
+    }
+
+    this.getExtremeRight = function (gameObject) {
+        return this.x + this.l;
+    }
+
+    this.getExtremeTop = function (gameObject) {
+        return this.y - this.l;
+    }
+
+    this.getExtremeBottom = function (gameObject) {
+        return this.y + this.l;
+    }
+
     this.update = function (deltaTime) {
         let halfL = this.l / 2;
         if (this.y + halfL > height || this.y - halfL < 0) {
             this.velocity = createVector(this.velocity.x, this.velocity.y * -1);
+            this.velocity.mult(this.restituitionCoefficient);
             this.y = this.y < halfL ? halfL : height - halfL;
         }
         else if (this.x + halfL > width || this.x - halfL < 0) {
             this.velocity = createVector(this.velocity.x * -1, this.velocity.y);
+            this.velocity.mult(this.restituitionCoefficient);
             this.x = this.x < halfL ? halfL : width - halfL;
         }
         else {
@@ -177,16 +176,17 @@ function Quad(x, y, l) {
             this.x += this.velocity.x;
             this.y += this.velocity.y;
         }
-    },
+        this.cooldown -= 1;
+    }
 
-        this.draw = function () {
-            fill(10, 220, 10);
-            let halfL = this.l / 2;
-            quad(this.x - halfL, this.y - halfL,
-                this.x - halfL + this.l, this.y - halfL,
-                this.x - halfL + this.l, this.y - halfL + this.l,
-                this.x - halfL, this.y - halfL + this.l);
-        }
+    this.draw = function () {
+        fill(10, 220, 10);
+        let halfL = this.l / 2;
+        quad(this.x - halfL, this.y - halfL,
+            this.x - halfL + this.l, this.y - halfL,
+            this.x - halfL + this.l, this.y - halfL + this.l,
+            this.x - halfL, this.y - halfL + this.l);
+    }
 }
 
 function UniformGrid() {
@@ -194,12 +194,13 @@ function UniformGrid() {
 
     this.resolveColisions = function (objectsArray) {
 
-        let cellSizeX = width / 3;
-        let cellSizeY = height / 3;
 
-        let matrix = makeMatrix(3, 3);
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
+        let cellSizeX = width / 4;
+        let cellSizeY = height / 4;
+
+        let matrix = makeMatrix(4, 4);
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
                 for (let objIndex = 0; objIndex < objectsArray.length; objIndex++) {
                     let currentObject = objectsArray[objIndex];
                     if (currentObject.getExtremeLeft() >= cellSizeX * i && currentObject.getExtremeLeft() <= cellSizeX * (i + 1) ||
@@ -212,13 +213,13 @@ function UniformGrid() {
             }
         }
 
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
                 for (let objIndex = 0; objIndex < matrix[i][j].length - 1; objIndex++) {
-                    if (objectsArray[objIndex].checkCollision(objectsArray[objIndex + 1]) &&
+                    if (this.checkCollision(objectsArray[objIndex], objectsArray[objIndex + 1]) &&
                         objectsArray[objIndex + 1].cooldown < 0 &&
                         objectsArray[objIndex].cooldown < 0) {
-                        
+
                         let aux = objectsArray[objIndex].velocity;
                         objectsArray[objIndex].velocity = objectsArray[objIndex + 1].velocity;
                         objectsArray[objIndex + 1].velocity = aux;
@@ -230,6 +231,28 @@ function UniformGrid() {
                 }
             }
         }
+    }
+
+    this.checkCollision = function (objectA, objectB) {
+        if (objectA.type == objectTypeEnum.CIRCLE && objectB.type == objectTypeEnum.CIRCLE) {
+            return this.checkCollisionBetweenCircles(objectA, objectB);
+        } else if (objectA.type == objectTypeEnum.QUAD && objectB.type == objectTypeEnum.QUAD) {
+            return this.checkCollisionBetweenQuads(objectA, objectB);
+        } else {
+            return false;
+        }
+    }
+
+    this.checkCollisionBetweenCircles = function (objectA, objectB) {
+        const maxDist = objectA.r + objectB.r;
+        const catOp = objectA.x - objectB.x;
+        const catAd = objectA.y - objectB.y;
+        const hip = Math.sqrt(Math.pow(catOp, 2) + Math.pow(catAd, 2))
+        return hip <= maxDist;
+    }
+
+    this.checkCollisionBetweenQuads = function (objectA, objectB) {
+        return objectA.getExtremeRight() >= objectB.getExtremeLeft() || objectA.getExtremeLeft() >= objectB.getExtremeRight();
     }
 
 }
