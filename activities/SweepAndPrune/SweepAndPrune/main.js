@@ -27,11 +27,11 @@ function setup() {
 
 
 
-    circle = new Circle(500, 144, 20);
+    let circle = new Circle(500, 100, 20);
     objectsArray.push(circle);
-    circle = new Circle(100, 144, 20);
+    circle = new Circle(100, 50, 20);
     objectsArray.push(circle);
-    circle = new Circle(50, 144, 20);
+    circle = new Circle(50, 300, 20);
     objectsArray.push(circle);
     let quad = new Quad(200, 200, 40);
     objectsArray.push(quad);
@@ -138,25 +138,22 @@ function Quad(x, y, l) {
     this.restituitionCoefficient = 0.99;
     this.velocity = createVector(2, 0);
     this.type = objectTypeEnum.QUAD;
-
-    this.checkCollision = function (gameObject) {
-        return false;
-    }
+    this.cooldown = 0;
 
     this.getExtremeLeft = function (gameObject) {
-        return this.x - this.l;
+        return this.x - this.l / 2;
     }
 
     this.getExtremeRight = function (gameObject) {
-        return this.x + this.l;
+        return this.x + this.l / 2;
     }
 
     this.getExtremeTop = function (gameObject) {
-        return this.y - this.l;
+        return this.y - this.l / 2;
     }
 
     this.getExtremeBottom = function (gameObject) {
-        return this.y + this.l;
+        return this.y + this.l / 2;
     }
 
     this.update = function (deltaTime) {
@@ -238,7 +235,11 @@ function UniformGrid() {
             return this.checkCollisionBetweenCircles(objectA, objectB);
         } else if (objectA.type == objectTypeEnum.QUAD && objectB.type == objectTypeEnum.QUAD) {
             return this.checkCollisionBetweenQuads(objectA, objectB);
-        } else {
+        } else if (objectA.type == objectTypeEnum.CIRCLE && objectB.type == objectTypeEnum.QUAD){
+            return this.checkCollisionBetweenCircleAndSquare(objectA, objectB);
+        }else if (objectA.type == objectTypeEnum.QUAD && objectB.type == objectTypeEnum.CIRCLE){
+            return this.checkCollisionBetweenCircleAndSquare(objectB, objectA);
+        }else {
             return false;
         }
     }
@@ -252,7 +253,24 @@ function UniformGrid() {
     }
 
     this.checkCollisionBetweenQuads = function (objectA, objectB) {
-        return objectA.getExtremeRight() >= objectB.getExtremeLeft() || objectA.getExtremeLeft() >= objectB.getExtremeRight();
+        let xAxisCriteria = (objectA.getExtremeLeft() <= objectB.getExtremeLeft() &&
+        objectA.getExtremeRight() >= objectB.getExtremeRight() ||
+        objectA.getExtremeRight() >= objectB.getExtremeLeft() &&
+        objectA.getExtremeLeft() <= objectB.getExtremeLeft());
+
+        let yAxisCriteia = (objectA.getExtremeTop() >= objectB.getExtremeTop() &&
+        objectA.getExtremeTop() <= objectB.getExtremeBottom() ||
+        objectA.getExtremeBottom() >= objectB.getExtremeTop() &&
+        objectA.getExtremeTop() <= objectB.getExtremeTop());
+
+        return xAxisCriteria && yAxisCriteia;
+    }
+
+    this.checkCollisionBetweenCircleAndSquare = function(circleA, squareB){
+        return circleA.r >= dist(circleA.x, circleA.y, squareB.getExtremeLeft(), squareB.getExtremeTop()) ||
+            circleA.r >= dist(circleA.x, circleA.y, squareB.getExtremeLeft(), squareB.getExtremeBottom()) ||
+            circleA.r >= dist(circleA.x, circleA.y, squareB.getExtremeRight(), squareB.getExtremeTop()) ||
+            circleA.r >= dist(circleA.x, circleA.y, squareB.getExtremeRight(), squareB.getExtremeBottom());
     }
 
 }
